@@ -1,12 +1,12 @@
 # Mist
 
-**A 200 KB native Windows Markdown reader.** No Electron, no WebView, no background process — the window is a sheet of glass, the document is just pixels painted on it.
+Windows 10/11 上的一个 Markdown 阅读器。C# + WinForms，单进程，自写排版，四套主题。
 
-> 极简 Markdown 阅读器：本机 Windows 10/11，单进程、自带排版引擎、四套主题。
+A small Markdown reader for Windows. C# + WinForms, one process, ~200 KB framework-dependent build, no WebView.
 
 ### [下载 Mist 1.0.0](https://github.com/cairosolan/Mist/releases/latest)
 
-推荐 `Mist-1.0.0-win-x64-self-contained.zip`（47 MB）：解压双击即用，机器上不需要 .NET 运行时。已经装了 .NET 10 Desktop Runtime 的话，用 190 KB 的 `-framework-dependent` 版，启动更快。
+`Mist-1.0.0-win-x64-self-contained.zip`（47 MB）解压后双击 `Mist.exe` 就能用，不用另外装 .NET 运行时。机器上已经有 .NET 10 Desktop Runtime 的话，用 190 KB 的 `-framework-dependent` 版，启动更快。
 
 ![纯白主题](preview-pure-light.png)
 
@@ -16,38 +16,48 @@
 ![size](https://img.shields.io/badge/framework--dependent%20build-200%20KB-brightgreen?style=flat-square)
 ![dependencies](https://img.shields.io/badge/dependencies-0-blue?style=flat-square)
 
-## 为什么是它
+## 开销
 
-- **启动快**：热启动 270–310 ms 出窗口，冷启动约 1.3 s
-- **占用小**：常驻约 71 MB Working Set（私有内存 24 MB），27 线程，单进程
-- **不发胖**：框架依赖版约 200 KB（`Mist.exe` + `Mist.dll`），零 NuGet 依赖
-- **不将就**：真表格、CJK 逐字断行、行首行尾禁则、代码块按像素宽度折行、正文可划选复制、`Ctrl` + 滚轮无级缩放
+Release 构建，单窗口，1080p 桌面，实测：
 
-对照一下同类的代价：Electron 类阅读器起步 100 MB 内存 + 200 MB 安装包 + 3 个后台进程。Mist 把渲染、排版、窗口装饰全部收到一个进程里，玻璃和圆角借系统现成的。
+| 项目 | 数值 |
+| --- | --- |
+| 热启动到出窗口 | 270–310 ms |
+| 冷启动 | 约 1.3 s |
+| Working Set | 约 71 MB |
+| 私有内存 | 24 MB |
+| 线程 | 27 |
+| 进程 | 1 |
+| 框架依赖版体积 | 约 200 KB（`Mist.exe` + `Mist.dll`） |
+| NuGet 依赖 | 0 |
 
-## 运行
+参照点：Electron 类阅读器一般是 100 MB 级内存、200 MB 级安装包、多个进程。这里渲染、排版和窗口装饰都在一个进程里，模糊和圆角用系统现成的。
 
-需要 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)（开发机装了 SDK 就直接能跑）。
+能做的事：真表格、CJK 逐字断行、行首行尾禁则、代码块按像素宽度折行、正文划选复制、`Ctrl` + 滚轮无级缩放。
+
+## 构建与运行
+
+需要 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)（装了 SDK 的开发机直接能跑）。
 
 ```powershell
 # 克隆后编译
 dotnet build src\Mist -c Release
 .\src\Mist\bin\Release\net10.0-windows\Mist.exe
 
-# 或者直接用发布的 exe（仓库里 release 页下载）
+# 或者直接用 release 页下载的 exe
 Mist.exe                 # 空窗口，拖入 .md 文件
 Mist.exe "samples\示例.md"
 ```
 
-想要一份不依赖运行时的绿色版：
+要一份不依赖运行时的绿色版：
 
 ```powershell
 dotnet publish src\Mist -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o dist-portable
 ```
 
-体积会涨到约 100 MB（WinForms 不支持 trimming / NativeAOT，这是硬约束），换来的是拷走即用。
+体积约 100 MB。WinForms 不支持 trimming 和 NativeAOT，这点绕不过去。
 
-## 操作
+## 快捷键
 
 | 操作 | 键 |
 | --- | --- |
@@ -70,7 +80,7 @@ dotnet publish src\Mist -c Release -r win-x64 --self-contained true -p:PublishSi
 | 3 | 米白 | `#F6F1E7` | 94% |
 | 4 | 墨蓝 | `#0E1626` | 91% |
 
-全部带系统级圆角与 DWM 玻璃。深浅判断由底色亮度自动决定，深浅两套配色在代码块、行内代码、强调色上分别调过。
+四套都带系统圆角和 DWM 玻璃。深浅由底色亮度自动判断，两套配色在代码块、行内代码和强调色上分别调过。
 
 ![纯黑主题](preview-pure-dark.png)
 
@@ -78,14 +88,12 @@ dotnet publish src\Mist -c Release -r win-x64 --self-contained true -p:PublishSi
 
 ## 技术路线
 
-C# .NET 10 + WinForms 自绘画布 + DWM 原生合成。
+C# .NET 10 + WinForms 自绘画布 + DWM 原生合成。分四块说：
 
-1. **玻璃交给系统**：`DWMWA_SYSTEMBACKDROP_TYPE` 让 DWM 合成 Acrylic / Mica，模糊和每帧开销都是零成本。程序只画内容，从不铺满窗口。
-2. **圆角交给系统**：`DWMWA_WINDOW_CORNER_PREFERENCE = ROUND`，抗锯齿、投影、贴边吸附全部免费。
-3. **内容只画像素**：GDI+ 画进 32 位 ARGB 位图，`CompositingMode.SourceCopy` 一次性提交，alpha 通道原样交回 DWM 合成。
-4. **排版自己做**：`Markdown.cs` 把 md 拆成块，`Layout.cs` 把块排成绝对定位的绘制列表；窗口尺寸变化时重排一次，滚动只改偏移量。
-
-关键取舍：窗口 chrome 用 `WS_THICKFRAME`（保留拉伸和贴边吸附）但去掉 `WS_CAPTION` / `WS_SYSMENU` / `WS_MIN|MAXBOX`，否则 Windows 会自己塞回一条原生标题栏；`WM_NCPAINT` 直接返回 0，边框全部自绘。
+1. **模糊和圆角交给 DWM**。`DWMWA_SYSTEMBACKDROP_TYPE` 选 Acrylic / Mica，`DWMWA_WINDOW_CORNER_PREFERENCE = ROUND`。程序本身不画背景，每帧也没有额外开销，抗锯齿、投影、贴边吸附都由系统负责。
+2. **内容只画像素**。GDI+ 画进 32 位 ARGB 位图，`CompositingMode.SourceCopy` 一次性提交，alpha 通道原样交回 DWM 合成。
+3. **排版自己做**。`Markdown.cs` 把 md 拆成块，`Layout.cs` 把块排成绝对定位的绘制列表。窗口尺寸变化时重排一次，滚动只改偏移量。
+4. **窗口 chrome 手写**。用 `WS_THICKFRAME` 保留拉伸和贴边吸附，去掉 `WS_CAPTION` / `WS_SYSMENU` / `WS_MIN|MAXBOX`，否则 Windows 会自己塞回一条原生标题栏；`WM_NCPAINT` 直接返回 0，边框全部自绘。
 
 ```
 src/Mist/
@@ -101,16 +109,16 @@ src/Mist/
 
 ## 图标
 
-两套标，同一套几何语言，都是**代码画的**而不是位图缩放：
+两套图标都由 `IconDesign.cs` 用几何方式绘制，不是把位图缩放：
 
-- **程序标** `assets/Mist.ico`：圆角磨砂玻璃方块 + 深蓝 `M`。编进 exe，任务栏和 Alt-Tab 都取它，同时画在标题栏最左侧。
-- **文档标** `assets/MistDoc.ico`：纸页 + 折角 + 深色 `M↓` + 两行正文提示线。`--register` 时释放到 `%LOCALAPPDATA%\Mist\icons`，资源管理器里的 `.md` 文件就显示它。
+- **程序标** `assets/Mist.ico`：圆角磨砂玻璃方块 + 深蓝 `M`。编进 exe，任务栏和 Alt-Tab 取它，标题栏最左侧也画它。
+- **文档标** `assets/MistDoc.ico`：纸页 + 折角 + 深色 `M↓` + 两行正文提示线。`--register` 时释放到 `%LOCALAPPDATA%\Mist\icons`，资源管理器里的 `.md` 文件显示它。
 
 ```powershell
 Mist.exe --makeicons assets    # 重新生成全部 .ico 与预览图（16/20/24/32/40/48/64/128/256）
 ```
 
-小尺寸单独调过：16px 自动加粗笔画，文档标在 24px 以下省掉箭头，避免糊成一团。
+小尺寸单独调过：16px 加粗笔画，文档标 24px 以下省掉箭头，避免糊成一团。
 
 ## 设为 .md 的默认打开程序
 
@@ -141,7 +149,7 @@ Mist.exe --dump out.png "samples\示例.md" --theme 1
 
 ## 已知限制
 
-- **真实模糊依赖环境**：DWM 的 Acrylic / Mica 需要「设置 → 个性化 → 颜色 → 透明效果」开启且桌面有壁纸。远程桌面、纯色背景或透明效果关闭时，DWM 会把模糊降级成纯灰底 —— 这时窗口只是半透明，不是模糊。这是系统行为，不是程序缺陷。
+- **真实模糊依赖环境**：DWM 的 Acrylic / Mica 需要「设置 → 个性化 → 颜色 → 透明效果」开启且桌面有壁纸。远程桌面、纯色背景或透明效果关闭时，DWM 会把模糊降级成纯灰底，这时窗口只是半透明，不是模糊。这是系统行为，不是程序缺陷。
 - **表格**：支持表头底色、行间细线、`:---` / `:---:` / `---:` 三种对齐、单元格内行内代码与粗体、超宽折行；不支持单元格内多行硬换行与 `rowspan`。
 - **只是阅读器**：能划选正文，但没有搜索、没有编辑、不做多标签，一个窗口一个文件。
 - **表格选区复制**用制表符分隔列，粘进表格软件能自动分列，粘进纯文本编辑器就是个近似。

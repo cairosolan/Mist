@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>Mist</AssemblyName>
+    <RootNamespace>Mist</RootNamespace>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ApplicationIcon>..\..\assets\Mist.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 图标源文件：Mist.ico 嵌入程序（窗口/任务栏用全尺寸），MistDoc.ico 复制到输出目录供 .md 关联使用 -->
+    <EmbeddedResource Include="..\..\assets\Mist.ico" LogicalName="Mist.ico" />
+    <EmbeddedResource Include="..\..\assets\MistDoc.ico" LogicalName="MistDoc.ico" />
+  </ItemGroup>
+</Project>

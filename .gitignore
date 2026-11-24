@@ -1,0 +1,14 @@
+# 构建产物与本地环境
+bin/
+obj/
+dist/
+dist-portable/
+.vs/
+*.user
+*.suo
+*.pdb
+
+# 临时调试与自检产物
+*.log
+_tb-*.png
+out.png

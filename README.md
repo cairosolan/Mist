@@ -4,8 +4,13 @@
 
 > 极简 Markdown 阅读器：本机 Windows 10/11，单进程、自带排版引擎、四套主题。
 
+### [下载 Mist 1.0.0](https://github.com/cairosolan/Mist/releases/latest)
+
+推荐 `Mist-1.0.0-win-x64-self-contained.zip`（47 MB）：解压双击即用，机器上不需要 .NET 运行时。已经装了 .NET 10 Desktop Runtime 的话，用 190 KB 的 `-framework-dependent` 版，启动更快。
+
 ![纯白主题](preview-pure-light.png)
 
+![release](https://img.shields.io/github/v/release/cairosolan/Mist?style=flat-square)
 ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?style=flat-square)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square)
 ![size](https://img.shields.io/badge/framework--dependent%20build-200%20KB-brightgreen?style=flat-square)
